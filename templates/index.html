@@ -1,18 +1,21 @@
 {% extends "layout.html" %}
+
 {% block content %}
-<div class="card">
-    <h2>Cargar Archivo</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" class="form-control" required>
-        <button type="submit" class="btn mt-3">Cargar Archivo</button>
-    </form>
-    {% if df is not none %}
-    <h3 class="mt-4">Datos Cargados</h3>
-    <div class="table-responsive">
+<h2>Análisis de Datos</h2>
+
+{% if df %}
+    <div>
         {{ df.head().to_html(classes="table") | safe }}
     </div>
-    {% endif %}
-</div>
+{% else %}
+    <p>No hay datos cargados. Por favor, sube un archivo para ver la tabla.</p>
+{% endif %}
+
+<form action="/" method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button type="submit">Cargar Archivo</button>
+</form>
 {% endblock %}
+
 
 

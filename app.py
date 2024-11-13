@@ -96,10 +96,8 @@ app = Flask(__name__)
 app.secret_key = "secret_key"
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
-SESSION_TYPE = 'filesystem'  
-app.config['SESSION_FILE_DIR'] = './flask_session'
+app.config['SESSION_TYPE'] = 'filesystem'  # Asegúrate de que SESSION_TYPE esté configurado correctamente
+app.config['SESSION_FILE_DIR'] = './flask_session'  # Carpeta para almacenar las sesiones
 app.config['SESSION_PERMANENT'] = False
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -191,8 +189,11 @@ def index():
         else:
             flash("Por favor, carga un archivo CSV o TSV.", "error")
 
-    columnas = obtener_columnas()
-    return render_template("index.html", columnas=columnas)
+    # Obtén el DataFrame y sus columnas, si está disponible
+    df_modificado = cargar_dataframe()
+    columnas = df_modificado.columns if df_modificado is not None else []
+    return render_template("index.html", df=df_modificado, columnas=columnas)
+
 
 def cargar_dataframe():
     """Carga el DataFrame específico de cada sesión."""
