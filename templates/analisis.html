@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Análisis de Datos</h2>
+    <form method="POST">
+        <label>Columna para Cuartiles:</label>
+        <select name="cuartil_columna" class="form-control">
+            {% for columna in columnas %}
+            <option value="{{ columna }}">{{ columna }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn mt-3">Calcular Cuartiles</button>
+    </form>
+</div>
+{% endblock %}
+
+
+
+

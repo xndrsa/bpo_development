@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Gráficos</h2>
+    <form method="POST">
+        <label>Columna:</label>
+        <select name="columna" class="form-control">
+            {% for columna in columnas %}
+            <option value="{{ columna }}">{{ columna }}</option>
+            {% endfor %}
+        </select>
+        <label>Tipo de Gráfico:</label>
+        <select name="tipo_grafico" class="form-control">
+            <option value="Histograma">Histograma</option>
+            <option value="Barras">Gráfico de Barras</option>
+            <option value="Dispersión">Diagrama de Dispersión</option>
+        </select>
+        <button type="submit" class="btn mt-3">Generar Gráfico</button>
+    </form>
+    {% if grafico %}
+    <img src="data:image/png;base64,{{ grafico }}" class="img-fluid mt-4"/>
+    {% endif %}
+</div>
+{% endblock %}
+
+

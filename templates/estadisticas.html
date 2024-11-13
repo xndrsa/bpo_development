@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Estadísticas Descriptivas</h2>
+
+    <!-- Sub-tabs Navigation -->
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab(event, 'describe')">Describe</button>
+        <button class="tab-button" onclick="openTab(event, 'graficos')">Gráficos</button>
+        <button class="tab-button" onclick="openTab(event, 'conteos')">Conteos</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="describe" class="tab-content" style="display: block;">
+        <h3>Describe</h3>
+        <div class="table-responsive">
+            {{ estadisticas.to_html(classes="table") | safe }}
+        </div>
+    </div>
+
+    <div id="graficos" class="tab-content">
+        <h3>Gráficos</h3>
+        <!-- Aquí puedes agregar gráficos específicos que deseas mostrar -->
+        <p>Gráficos de datos según las columnas seleccionadas.</p>
+        <img src="{{ url_for('static', filename='example_chart.png') }}" alt="Ejemplo de Gráfico" style="width:100%;max-width:600px;">
+    </div>
+
+    <div id="conteos" class="tab-content">
+        <h3>Conteos</h3>
+        <!-- Aquí podrías mostrar tablas de conteo o cualquier otro análisis de conteo que tengas -->
+        <p>Conteo de elementos según categorías seleccionadas.</p>
+    </div>
+</div>
+
+<script>
+    function openTab(event, tabName) {
+        var i, tabcontent, tabbuttons;
+        
+        // Hide all tab contents
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        // Remove "active" class from all buttons
+        tabbuttons = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tabbuttons.length; i++) {
+            tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+        }
+
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(tabName).style.display = "block";
+        event.currentTarget.className += " active";
+    }
+</script>
+
+<style>
+    .tabs {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .tab-button {
+        padding: 10px;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        background-color: #f1f1f1;
+        margin-right: 5px;
+        border-radius: 5px;
+    }
+
+    .tab-button.active {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 15px;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+
+

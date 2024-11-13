@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Cargar Archivo</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" class="form-control" required>
+        <button type="submit" class="btn mt-3">Cargar Archivo</button>
+    </form>
+    {% if df is not none %}
+    <h3 class="mt-4">Datos Cargados</h3>
+    <div class="table-responsive">
+        {{ df.head().to_html(classes="table") | safe }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card">
+    <h2>Filtro de Datos</h2>
+    <form method="POST">
+        <label>Columna:</label>
+        <select name="columna" class="form-control">
+            {% for columna in columnas %}
+            <option value="{{ columna }}">{{ columna }}</option>
+            {% endfor %}
+        </select>
+        <label>Condición:</label>
+        <select name="condicion" class="form-control">
+            <option value=">">Mayor que</option>
+            <option value="<">Menor que</option>
+            <option value="=">Igual a</option>
+            <option value="!=">Diferente de</option>
+        </select>
+        <label>Valor:</label>
+        <input type="text" name="valor" class="form-control">
+        <button type="submit" class="btn mt-3">Aplicar Filtro</button>
+    </form>
+
+    {% if df is not none %}
+    <h3 class="mt-4">Datos Filtrados</h3>
+    <div class="table-responsive">
+        {{ df.to_html(classes="table") | safe }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+

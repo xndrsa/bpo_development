@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="floating-card">
+        <h3>Datos Cargados</h3>
+        <div class="table-responsive">
+            {{ df.to_html(classes="table table-bordered table-striped", index=False) | safe }}
+        </div>
+    </div>
+{% endblock %}
