@@ -89,15 +89,26 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from io import BytesIO
 import base64
+from flask_session import Session
+import uuid
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Variable global para el DataFrame
+SESSION_TYPE = 'filesystem'  
+app.config['SESSION_FILE_DIR'] = './flask_session'
+app.config['SESSION_PERMANENT'] = False
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+
+
+
+Session(app)
+
 df_modificado = None
 
 def calcular_cuartiles(df, columna):
@@ -115,46 +126,120 @@ def estadisticas_descriptivas(df):
     df_numerico = df.select_dtypes(include=['number'])
     return df_numerico.describe().T
 
+# @app.route("/", methods=["GET", "POST"])
+# def index():
+#     global df_modificado
+
+#     if request.method == "POST" and "file" in request.files:
+#         file = request.files["file"]
+#         if file.filename.endswith((".csv", ".tsv")):
+#             sep = "," if file.filename.endswith(".csv") else "\t"
+#             df_modificado = pd.read_csv(file, sep=sep)
+#             session["archivo_cargado"] = True
+#             flash("Archivo cargado exitosamente.", "success")
+#         else:
+#             flash("Por favor, carga un archivo CSV o TSV.", "error")
+
+#     columnas = df_modificado.columns if df_modificado is not None else []
+#     return render_template("index.html", df=df_modificado, columnas=columnas)
+
+# @app.route("/analisis", methods=["GET", "POST"])
+# def analisis():
+#     global df_modificado
+
+#     if request.method == "POST":
+#         if "cuartil_columna" in request.form:
+#             columna = request.form["cuartil_columna"]
+#             if df_modificado is not None and columna in df_modificado.columns:
+#                 cuartiles, df_modificado = calcular_cuartiles(df_modificado, columna)
+#                 flash(f"Cuartiles calculados para la columna {columna}.", "success")
+#         elif "agrupacion_columna" in request.form and "metodo_agrupacion" in request.form:
+#             columna = request.form["agrupacion_columna"]
+#             metodo = request.form["metodo_agrupacion"]
+#             if df_modificado is not None and columna in df_modificado.columns:
+#                 df_modificado = df_modificado.groupby(columna).agg(metodo.lower())
+#                 flash(f"Agrupación realizada en la columna {columna} usando el método {metodo}.", "success")
+    
+#     columnas = df_modificado.columns if df_modificado is not None else []
+#     return render_template("analisis.html", df=df_modificado, columnas=columnas)
+
+# @app.route("/estadisticas")
+# def estadisticas():
+#     global df_modificado
+#     if df_modificado is None:
+#         flash("Por favor, carga un archivo primero.", "error")
+#         return redirect(url_for("index"))
+#     estadisticas = estadisticas_descriptivas(df_modificado)
+#     return render_template("estadisticas.html", estadisticas=estadisticas)
+
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global df_modificado
-
     if request.method == "POST" and "file" in request.files:
         file = request.files["file"]
         if file.filename.endswith((".csv", ".tsv")):
             sep = "," if file.filename.endswith(".csv") else "\t"
             df_modificado = pd.read_csv(file, sep=sep)
-            session["archivo_cargado"] = True
+
+            # Guarda el DataFrame en una carpeta temporal usando un ID único por sesión
+            session_id = str(uuid.uuid4())
+            session["session_id"] = session_id
+            df_modificado.to_pickle(f"./flask_session/{session_id}.pkl")
+
             flash("Archivo cargado exitosamente.", "success")
         else:
             flash("Por favor, carga un archivo CSV o TSV.", "error")
 
-    columnas = df_modificado.columns if df_modificado is not None else []
-    return render_template("index.html", df=df_modificado, columnas=columnas)
+    columnas = obtener_columnas()
+    return render_template("index.html", columnas=columnas)
+
+def cargar_dataframe():
+    """Carga el DataFrame específico de cada sesión."""
+    session_id = session.get("session_id")
+    if session_id:
+        try:
+            return pd.read_pickle(f"./flask_session/{session_id}.pkl")
+        except FileNotFoundError:
+            return None
+    return None
+
+def guardar_dataframe(df):
+    """Guarda el DataFrame en el archivo de sesión específico."""
+    session_id = session.get("session_id")
+    if session_id:
+        df.to_pickle(f"./flask_session/{session_id}.pkl")
+
+def obtener_columnas():
+    """Devuelve las columnas del DataFrame de la sesión actual."""
+    df = cargar_dataframe()
+    return df.columns if df is not None else []
 
 @app.route("/analisis", methods=["GET", "POST"])
 def analisis():
-    global df_modificado
+    df_modificado = cargar_dataframe()
 
     if request.method == "POST":
         if "cuartil_columna" in request.form:
             columna = request.form["cuartil_columna"]
             if df_modificado is not None and columna in df_modificado.columns:
                 cuartiles, df_modificado = calcular_cuartiles(df_modificado, columna)
+                guardar_dataframe(df_modificado)
                 flash(f"Cuartiles calculados para la columna {columna}.", "success")
         elif "agrupacion_columna" in request.form and "metodo_agrupacion" in request.form:
             columna = request.form["agrupacion_columna"]
             metodo = request.form["metodo_agrupacion"]
             if df_modificado is not None and columna in df_modificado.columns:
                 df_modificado = df_modificado.groupby(columna).agg(metodo.lower())
+                guardar_dataframe(df_modificado)
                 flash(f"Agrupación realizada en la columna {columna} usando el método {metodo}.", "success")
     
-    columnas = df_modificado.columns if df_modificado is not None else []
+    columnas = obtener_columnas()
     return render_template("analisis.html", df=df_modificado, columnas=columnas)
 
 @app.route("/estadisticas")
 def estadisticas():
-    global df_modificado
+    df_modificado = cargar_dataframe()
     if df_modificado is None:
         flash("Por favor, carga un archivo primero.", "error")
         return redirect(url_for("index"))
